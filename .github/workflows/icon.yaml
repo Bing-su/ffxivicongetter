@@ -1,0 +1,55 @@
+name: Get Icons
+
+on:
+  workflow_dispatch:
+
+jobs:
+  icons:
+    name: Get Icons
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: uv sync --no-dev
+
+      - name: Get icons
+        run: uv run ffxivicongetter
+
+      - name: Archive icons
+        run: uv run python -m zipfile -c ${{ github.workspace }}/icons.zip .
+        working-directory: data
+
+      - name: Upload icons
+        uses: actions/upload-artifact@v4
+        with:
+          name: icons
+          path: icons.zip
+
+  binary:
+    name: Build Binary
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Build binary
+        run: uv run hatch build -t binary
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary
+          path: dist/binary
