@@ -7,10 +7,11 @@ from enum import Enum
 from pathlib import Path
 from typing import TypedDict
 
+import hishel
 import httpx
 from tqdm.auto import tqdm
 
-from .jobs import Job, Jobs, abbreviation_to_job, adventure
+from .jobs import Job, Jobs, abbreviation_to_job, adventure, common
 
 BASE_URL = "https://beta.xivapi.com/api/1"
 XIV_ROLE_MAP = {
@@ -67,6 +68,8 @@ ROLE_MAP_REVERSE = {v: k for k, v in ROLE_MAP.items()}
 
 
 class ActionCategory(Enum):
+    "https://beta.xivapi.com/api/1/sheet/ActionCategory"
+
     AutoAttack = 1
     Spell = 2
     Weaponskill = 3
@@ -81,7 +84,7 @@ class ActionCategory(Enum):
     Mount = 12
     Special = 13
     ItemManipulation = 14
-    LimitBreak2 = 15
+    LimitBreak2 = 15  # pvp limit break
     Artillery = 17
 
 
@@ -104,7 +107,7 @@ class ActionRow(TypedDict):
 
 
 def init_client() -> httpx.Client:
-    return httpx.Client(
+    return hishel.CacheClient(
         base_url=BASE_URL,
         headers={
             "User-Agent": "FFXIVIconGetter/0.1.0",
@@ -113,6 +116,7 @@ def init_client() -> httpx.Client:
         http2=True,
         timeout=20,
         follow_redirects=True,
+        storage=hishel.SQLiteStorage(ttl=60 * 60 * 24),
     )
 
 
@@ -133,6 +137,8 @@ def is_that_category(data: dict) -> bool:
         ActionCategory.Ability.value,
         ActionCategory.Weaponskill.value,
         ActionCategory.Spell.value,
+        ActionCategory.LimitBreak.value,
+        ActionCategory.LimitBreak2.value,
     ]
 
 
@@ -144,7 +150,7 @@ def is_class_skill(data: dict) -> bool:
     return class_job > 0
 
 
-def is_common_action(data: dict) -> bool:
+def _is_some_action(data: dict, limit: int) -> bool:
     try:
         class_job_category: dict = data["fields"]["ClassJobCategory"]["fields"]
     except KeyError:
@@ -155,7 +161,17 @@ def is_common_action(data: dict) -> bool:
             continue
         if v:
             count += 1
-    return count >= len(list(Jobs))
+    return count >= limit
+
+
+def is_adv_action(data: dict) -> bool:
+    limit = len(list(Jobs))
+    return _is_some_action(data, limit)
+
+
+def is_common_action(data: dict) -> bool:
+    limit = 3
+    return _is_some_action(data, limit)
 
 
 def fetch_user_skills() -> list[ActionRow]:
@@ -197,12 +213,13 @@ def row_id_to_jobs(row_id: int) -> list[Job]:
 
     has_icon_ = has_icon(data)
     is_that_category_ = is_that_category(data)
-    is_common_action_ = is_common_action(data)
 
     if not has_icon_ or not is_that_category_:
         return []
-    if is_common_action_:
+    if is_adv_action(data):
         return [adventure]
+    if is_common_action(data):
+        return [common]
 
     jobs = []
     for abb, value in class_job_category.items():
@@ -289,6 +306,6 @@ def fetch_icons(
             name = row["fields"]["Name"]
             row_id = row["row_id"]
 
-            filename = f"{row_id:05d}_{name}.png"
-            output_path = save_dir / filename
+            filename = f"{row_id:04d}_{name}.png"
+            output_path = save_dir.joinpath(filename)
             output_path.write_bytes(image)
