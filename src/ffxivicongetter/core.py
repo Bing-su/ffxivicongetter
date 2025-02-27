@@ -13,7 +13,7 @@ from tqdm.auto import tqdm
 
 from .jobs import Job, Jobs, abbreviation_to_job, adventure, common
 
-BASE_URL = "https://beta.xivapi.com/api/1"
+BASE_URL = "https://v2.xivapi.com/api"
 XIV_ROLE_MAP = {
     "Paladin": 1,
     "Monk": 2,
@@ -68,7 +68,7 @@ ROLE_MAP_REVERSE = {v: k for k, v in ROLE_MAP.items()}
 
 
 class ActionCategory(Enum):
-    "https://beta.xivapi.com/api/1/sheet/ActionCategory"
+    "https://v2.xivapi.com/api/sheet/ActionCategory"
 
     AutoAttack = 1
     Spell = 2
