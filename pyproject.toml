@@ -1,6 +1,6 @@
 [project]
 name = "ffxivicongetter"
-version = "0.1.0"
+version = "0.1.1"
 description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "Dowon", email = "ks2515@naver.com" }]
