@@ -32,7 +32,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: artifact
+          path: dist
 
       - run: ls -R dist
 
