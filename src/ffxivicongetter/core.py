@@ -7,8 +7,8 @@ from enum import Enum
 from pathlib import Path
 from typing import TypedDict
 
-import hishel
-import httpx
+from hishel import SyncSqliteStorage
+from hishel.httpx import SyncCacheClient
 from tqdm.auto import tqdm
 
 from .jobs import Job, Jobs, abbreviation_to_job, adventure, common
@@ -106,8 +106,8 @@ class ActionRow(TypedDict):
     fields: Field
 
 
-def init_client() -> httpx.Client:
-    return hishel.CacheClient(
+def init_client() -> SyncCacheClient:
+    return SyncCacheClient(
         base_url=BASE_URL,
         headers={
             "User-Agent": "FFXIVIconGetter/0.1.0",
@@ -116,7 +116,7 @@ def init_client() -> httpx.Client:
         http2=True,
         timeout=20,
         follow_redirects=True,
-        storage=hishel.SQLiteStorage(ttl=60 * 60 * 24),
+        storage=SyncSqliteStorage(default_ttl=60 * 60 * 24),
     )
 
 
