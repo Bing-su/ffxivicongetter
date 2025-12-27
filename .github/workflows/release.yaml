@@ -6,7 +6,8 @@ on:
       binary:
         description: "Build binary"
         required: false
-        default: "false"
+        default: false
+        type: boolean
 
 jobs:
   icons:
@@ -14,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
 
       - name: Get icons
         run: uv run --no-dev ffxivicongetter
@@ -27,7 +28,7 @@ jobs:
         working-directory: data
 
       - name: Upload icons
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ffxiv-icons
           path: icons.zip
@@ -35,13 +36,13 @@ jobs:
   binary:
     name: Build Binary
     runs-on: windows-latest
-    if: ${{ github.event.inputs.binary == 'true' }}
+    if: ${{ github.event.inputs.binary }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
@@ -49,7 +50,7 @@ jobs:
         run: uv run hatch build -t binary
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: binary
           path: dist/binary
@@ -66,13 +67,13 @@ jobs:
       - uses: hustcer/setup-nu@v3
 
       - name: Download icons
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ffxiv-icons
 
       - name: Download binary
-        if: ${{ github.event.inputs.binary == 'true' }}
-        uses: actions/download-artifact@v4
+        if: ${{ github.event.inputs.binary }}
+        uses: actions/download-artifact@v7
         with:
           name: binary
 
