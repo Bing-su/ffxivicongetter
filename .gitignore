@@ -178,3 +178,4 @@ pyrightconfig.json
 data/
 sample/
 .hishel.sqlite
+*.lock
