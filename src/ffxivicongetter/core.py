@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 from concurrent.futures import Future, ThreadPoolExecutor
 from enum import Enum
+from functools import cache
 from pathlib import Path
 from typing import TypedDict
 
@@ -106,6 +107,7 @@ class ActionRow(TypedDict):
     fields: Field
 
 
+@cache
 def init_client() -> SyncCacheClient:
     return SyncCacheClient(
         base_url=BASE_URL,
